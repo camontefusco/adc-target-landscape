@@ -1,29 +1,30 @@
-# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
 .venv/
-
-# Editors and OS
 .DS_Store
 .idea/
 .vscode/
 
-# Local data and generated results
+# Never commit large pathology or expression data.
 data/raw/**
 data/processed/**
-results/metrics/**
-results/predictions/**
-results/figures/**
-
-# Preserve empty directory structure
 !data/raw/.gitkeep
 !data/processed/.gitkeep
-!results/metrics/.gitkeep
+
+# Keep only intentionally reviewed lightweight manifests.
+data/manifests/*.tmp
+
+# Generated outputs.
+results/predictions/**
+results/metrics/**
+results/tables/**
+results/figures/**
 !results/predictions/.gitkeep
+!results/metrics/.gitkeep
+!results/tables/.gitkeep
 !results/figures/.gitkeep
 
-# Notebook outputs
 .ipynb_checkpoints/

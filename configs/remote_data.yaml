@@ -1,0 +1,28 @@
+project:
+  name: adc_target_landscape
+  compute: google_colab
+
+tangle:
+  drive_root_url: https://drive.google.com/drive/folders/1GIJEITf5-7lFKil7Dfi3sSmVFgzh-otv
+  colab_shortcut_path: /content/drive/MyDrive/AI Pathology Biomarkers Project/brca
+  manifest_relative_path: csvs/tcga_brca.csv
+  uni_relative_path: uni_features/tcga_features
+  anonymous_rna_relative_path: rna
+  embedding_dim: 1024
+
+xena:
+  dataset: TCGA.BRCA.sampleMap/HiSeqV2_PANCAN
+  download_url: https://tcga-xena-hub.s3.us-east-1.amazonaws.com/download/TCGA.BRCA.sampleMap%2FHiSeqV2_PANCAN.gz
+  metadata_url: https://tcga-xena-hub.s3.us-east-1.amazonaws.com/download/TCGA.BRCA.sampleMap%2FHiSeqV2_PANCAN.json
+  sample_type: primary_tumour
+
+targets:
+  primary: [ERBB2, TACSTD2, PVRL4, FOLR1, SLC39A6, MET]
+  four_target_sensitivity: [ERBB2, TACSTD2, PVRL4, FOLR1]
+  aliases:
+    NECTIN4: PVRL4
+    LIV1: SLC39A6
+
+ranking:
+  primary: train_fold_gene_zscore
+  sensitivity: xena_pancan_centered_value

@@ -1,44 +1,35 @@
-# Codex Prompt: Build a Small-N Pathology Foundation Model Benchmark for a NeurIPS 2026 LXAI Extended Abstract
+# Codex Prompt: Rapid Go/No-Go Pilot for a Multi-Target ADC Landscape Study Using Precomputed Pathology Embeddings
 
-## Goal
+## Project objective
 
-Help me build a minimal, reproducible research project suitable for a **4-page NeurIPS 2026 LatinX in AI workshop extended abstract**.
+Build the fastest scientifically defensible pilot for a **NeurIPS 2026 LatinX in AI workshop extended abstract** using existing precomputed pathology foundation-model embeddings and matched transcriptomic data.
 
-The project must be executable quickly, with minimal data-engineering and compute risk.
+The project must answer:
 
-The core scientific question is:
+> **Can histology-derived foundation-model representations recover the relative landscape of ADC-relevant target expression within individual breast cancer patients?**
 
-> **How small is too small? Quantifying instability of pathology foundation-model predictions across small oncology cohort sizes.**
+This is not a generic biomarker classifier.
 
-The intended message is:
+The central novelty is to treat therapeutically relevant targets as a **joint within-patient ranking problem** rather than as isolated binary prediction tasks.
 
-> In small biomedical cohorts, uncertainty caused by which patients happen to be sampled may be as large as, or larger than, the apparent performance gains obtained by changing machine-learning methods.
+The minimum viable study should use:
 
-The project should initially avoid:
+* TCGA-BRCA;
+* precomputed UNI pathology embeddings;
+* matched RNA expression;
+* 4–6 ADC-relevant targets;
+* simple pooled slide representations;
+* simple regularized prediction models;
+* within-patient target-ranking metrics;
+* no WSI preprocessing;
+* no foundation-model fine-tuning;
+* no RNA model;
+* no multimodal transformer;
+* no MIL unless the simple model clearly works first.
 
-* downloading or preprocessing whole-slide images if possible;
-* fine-tuning large foundation models;
-* multimodal RNA-seq integration;
-* LoRA;
-* full MIL development;
-* large GPU requirements.
+The first goal is not to build the full paper.
 
-Prefer existing **precomputed pathology foundation-model embeddings** and existing labels.
-
-The minimum study should use:
-
-* one pathology foundation model with precomputed embeddings;
-* one oncology prediction task;
-* patient-level samples;
-* training cohort sizes of 25, 50, 100, 200, and full cohort;
-* repeated patient subsampling;
-* simple downstream classifiers;
-* AUROC;
-* AUPRC;
-* Brier score;
-* variability across patient subsets.
-
-If a suitable ImageNet embedding baseline is readily available, include it. Do not create major infrastructure just to add it.
+The first goal is to determine quickly whether the idea has enough signal to justify the workshop abstract.
 
 ---
 
@@ -46,642 +37,1001 @@ If a suitable ImageNet embedding baseline is readily available, include it. Do n
 
 Act as:
 
-* senior ML research engineer;
-* computational pathology scientist;
-* biostatistician;
-* reproducibility engineer;
+* computational pathology research engineer;
+* biomedical ML scientist;
+* oncology biomarker analyst;
+* statistical programmer;
 * scientific-methods reviewer;
+* reproducibility engineer;
 * pair programmer.
 
-You must help me execute the project, not merely describe it.
+I am beginner-to-intermediate in Python.
 
-My Python ability is beginner-to-intermediate, so:
+Therefore:
 
-* explain important code decisions;
-* keep the implementation modular but simple;
+* explain important steps;
+* keep code simple and modular;
 * avoid unnecessary abstractions;
-* use readable Python;
-* add tests for critical logic;
-* explain errors when they occur;
-* prefer robust existing libraries over custom implementations.
+* use robust libraries;
+* write tests for patient matching and leakage;
+* prioritize a working scientific result over sophisticated infrastructure.
 
 ---
 
-# First task: feasibility audit
+# Critical scope control
 
-Before writing substantial modelling code, determine whether we can execute the entire project using **existing downloadable embeddings plus labels**.
+Do not begin by:
 
-Search current official or primary sources for:
+* downloading whole-slide images;
+* generating tiles;
+* running UNI;
+* running TANGLE training;
+* building MIL;
+* using LoRA;
+* fine-tuning any foundation model;
+* adding SHAP;
+* adding RNA encoders;
+* building Docker;
+* designing a new neural architecture.
 
-1. precomputed embeddings from pathology foundation models such as:
+Use the **already prepared TCGA-BRCA pathology embeddings and expression data** if they are actually available and usable.
 
-   * UNI / UNI2;
-   * Virchow;
-   * Phikon;
-   * Prov-GigaPath;
-   * other credible pathology foundation models;
-
-2. associated datasets containing:
-
-   * patient IDs;
-   * slide IDs;
-   * labels;
-   * train/test or cohort metadata;
-
-3. tasks suitable for small-N analysis, such as:
-
-   * tumour subtype;
-   * MSI;
-   * mutation status;
-   * receptor status;
-   * molecular subtype;
-   * another robust binary oncology endpoint.
-
-Rank candidate datasets by:
-
-* direct availability of embeddings;
-* direct availability of labels;
-* patient-level identifiers;
-* number of patients;
-* class balance;
-* simplicity of loading;
-* licensing;
-* absence of special data-access approval;
-* absence of huge downloads;
-* suitability for 25/50/100/200/full subsets.
-
-Do not start coding the pipeline until you have identified the easiest feasible dataset.
-
-Prefer a dataset where I can download a manageable archive or table and start modelling immediately.
-
-Clearly state:
-
-* chosen dataset;
-* chosen endpoint;
-* chosen embedding source;
-* approximate patient count;
-* file size;
-* license;
-* whether patient IDs are available;
-* why this is the fastest safe option.
-
-If no such precomputed dataset is usable, identify the next easiest route.
+If the prepared data fail, report the failure and immediately identify the simplest fallback.
 
 ---
 
-# Scientific design
+# Phase 0 — Immediate feasibility audit
 
-Use one fixed validation/test design and vary only the size of the training cohort.
+This is the first and most important step.
 
-Preferred design:
+Before writing modelling code, verify the exact files available from the official TANGLE or associated repository.
 
-1. Create a patient-level development pool.
-2. Create one fixed internal test set.
-3. If enough data exist, create one fixed validation set.
-4. From the training pool, create nested subsets:
+Determine:
+
+1. exact download location;
+2. file names;
+3. file formats;
+4. file sizes;
+5. whether authentication is required;
+6. license;
+7. whether patient or slide identifiers are preserved;
+8. structure of pathology embedding files;
+9. embedding dimensionality;
+10. structure of RNA expression files;
+11. gene identifier format;
+12. whether pathology and RNA are already matched;
+13. number of patients;
+14. number of slides;
+15. number of patients with both modalities.
+
+Do not rely on README assumptions.
+
+Inspect the actual files or repository metadata.
+
+Output a concise feasibility report.
+
+---
+
+# Phase 1 — ADC target audit
+
+Before modelling, inspect a broad candidate list of ADC-relevant targets.
+
+Start with:
 
 ```text
-25 ⊂ 50 ⊂ 100 ⊂ 200 ⊂ Full
+ERBB2
+TACSTD2
+ERBB3
+FOLR1
+NECTIN4
+CD276
+MET
+EGFR
+CEACAM5
+F3
+LIV1 / SLC39A6
+MSLN
 ```
 
-Repeat this with multiple independent patient-subset seeds.
+Use only targets that exist in the expression matrix.
 
-Minimum:
+For every available target, calculate:
 
-* 5 subset seeds.
+* number of patients;
+* mean;
+* standard deviation;
+* median;
+* IQR;
+* minimum;
+* maximum;
+* percent zeros;
+* 5th percentile;
+* 95th percentile;
+* coefficient of variation;
+* skewness.
+
+Also visualize each expression distribution.
+
+Create a table:
+
+```text
+target
+n
+mean
+sd
+median
+iqr
+pct_zero
+p05
+p95
+cv
+skew
+usable_yes_no
+reason
+```
+
+Define simple target-selection rules.
+
+Prefer targets with:
+
+* sufficient variation;
+* few or no missing values;
+* few structural zeros;
+* clear therapeutic relevance;
+* non-identical expression distributions.
+
+Do not select targets merely because they are famous ADC targets.
+
+Recommend 4–6 targets for the pilot.
+
+---
+
+# Phase 2 — Patient and slide matching audit
+
+Determine whether the dataset is organized as:
+
+* one embedding file per slide;
+* one embedding file per patient;
+* multiple slides per patient.
+
+Create a manifest containing:
+
+```text
+patient_id
+slide_id
+embedding_path
+n_patches
+embedding_dim
+rna_available
+selected_targets_complete
+```
+
+If multiple slides exist per patient, use a deterministic rule for the pilot.
+
+Preferred order:
+
+1. one slide per patient using a predefined rule;
+2. if no defensible rule exists, average slide-level representations at patient level.
+
+Do not allow one patient's slides to appear in different train/test folds.
+
+Add automated tests confirming:
+
+* unique patient IDs;
+* no unmatched RNA records;
+* no duplicated slide-patient mappings;
+* no leakage.
+
+---
+
+# Phase 3 — Create simple slide representations
+
+The pathology input may consist of many patch embeddings per slide.
+
+For the minimum viable model, create slide-level representations using:
+
+## Primary pooling
+
+Mean pooling:
+
+```python
+slide_embedding = patch_embeddings.mean(axis=0)
+```
+
+## Optional sensitivity pooling
+
+Only if easy:
+
+* mean + standard deviation concatenation;
+* median pooling.
+
+Do not develop attention pooling or MIL yet.
+
+Record:
+
+* slide ID;
+* patient ID;
+* number of patches;
+* pooled embedding dimension.
+
+If multiple slides per patient are retained, aggregate slide embeddings to patient level using mean pooling.
+
+---
+
+# Phase 4 — Define the molecular target vector
+
+For each patient, create:
+
+```text
+y_i = [
+    expression_target_1,
+    expression_target_2,
+    ...
+]
+```
+
+Preprocessing must be scientifically transparent.
+
+First inspect whether expression values are:
+
+* raw counts;
+* TPM;
+* log-transformed values;
+* standardized values;
+* another representation.
+
+Do not transform until this is known.
+
+Possible preprocessing:
+
+* log1p only when appropriate;
+* gene-wise z-score fitted on training data only;
+* robust scaling fitted on training data only.
+
+For within-patient ranking, also retain the original or monotonic-transformed expression values.
+
+Do not normalize each patient across targets in a way that destroys biologically meaningful relative differences unless used only for a dedicated ranking sensitivity analysis.
+
+---
+
+# Phase 5 — Train/test design
+
+For the pilot, use simple repeated cross-validation.
 
 Preferred:
 
-* 10 subset seeds.
+* 5-fold patient-level cross-validation;
+* repeated 3 times with different seeds if compute is trivial.
 
-Use the same test set for every experiment.
+If sample size is too small:
 
-For every subset:
+* repeated stratified splitting is not appropriate for continuous multi-output targets;
+* instead use repeated K-fold CV.
 
-* preserve class balance where feasible;
-* do not leak patients across train/test;
-* do not sample slides independently if several belong to one patient;
-* aggregate or select slides using a deterministic patient-level rule.
+All preprocessing must be fitted within training folds.
 
-The unit of analysis must be the patient unless the dataset clearly supports a slide-level endpoint.
+No patient may appear in both training and test within a fold.
 
----
+Store out-of-fold predictions for every patient.
 
-# Models
-
-Start simple.
-
-## Model 1: Logistic regression
-
-Use frozen embeddings with:
-
-* standardization fitted on training data only;
-* regularized logistic regression;
-* class weighting only if justified.
-
-This should be the main model.
-
-## Model 2: Shallow MLP
-
-Only after logistic regression works.
-
-Use:
-
-* one hidden layer;
-* strong regularization;
-* early stopping;
-* fixed small architecture.
-
-Do not add deep architectures unless absolutely necessary.
-
-If precomputed ImageNet embeddings are readily available, repeat the logistic-regression analysis with them as a baseline.
+The main analyses should be based on out-of-fold predictions, not training predictions.
 
 ---
 
-# Main experiment
+# Phase 6 — Baseline models
 
-For each training cohort size:
+Begin with simple models only.
 
-* 25;
-* 50;
-* 100;
-* 200;
-* full training cohort;
+## Model A — Mean predictor
 
-and for each patient-subset seed:
-
-1. train the model;
-2. evaluate on the same fixed test set;
-3. store predictions;
-4. store metrics;
-5. store calibration results;
-6. store selected hyperparameters;
-7. store random seed.
-
-The primary outputs are:
-
-* AUROC;
-* AUPRC;
-* Brier score;
-* calibration slope if sample size permits;
-* sensitivity;
-* specificity;
-* balanced accuracy;
-* model coefficient norm or another simple complexity diagnostic;
-* runtime.
-
----
-
-# Primary scientific quantity
-
-Compute the variability caused by patient sampling.
-
-For each N:
+For each target:
 
 ```text
-Var_subset(AUROC)
-Var_subset(AUPRC)
-Var_subset(Brier)
+predict training-set mean expression
 ```
 
-Also compute:
+This establishes a trivial baseline.
 
-* standard deviation;
-* interquartile range;
-* 95% bootstrap or empirical interval;
-* best-minus-worst performance across subset seeds.
+## Model B — Ridge regression
 
-The main scientific comparison should ask:
+Use the pooled pathology embedding to predict all selected targets.
 
-> How large is sampling-induced performance variability relative to the apparent improvement obtained by increasing N or changing the downstream classifier?
-
-Define a provisional quantity such as:
+Test a very small alpha grid, for example:
 
 ```text
-Sampling Instability = SD of test AUROC across patient-subset seeds
+0.1
+1
+10
+100
 ```
 
-and compare it with:
+Select alpha within training folds only.
+
+## Model C — Elastic Net
+
+Optional only if ridge works.
+
+Use a modest grid.
+
+Do not spend time on extensive hyperparameter tuning.
+
+## Model D — PCA + ridge
+
+Optional sensitivity analysis if embedding dimensionality is much larger than patient count.
+
+Fit PCA on training data only.
+
+Try a small set such as:
 
 ```text
-Method Gain = mean AUROC(MLP) - mean AUROC(Logistic Regression)
+16
+32
+64
+128
 ```
 
-and:
+components where feasible.
 
-```text
-Sample-Size Gain = mean AUROC(N=100) - mean AUROC(N=50)
-```
-
-Do not invent a composite index unless it is clearly labelled exploratory.
+Do not use the test fold when fitting PCA.
 
 ---
 
-# Hypotheses
+# Phase 7 — Conventional gene-level performance
 
-Test these hypotheses:
+For every selected target, compute out-of-fold:
 
-1. Performance variability will be largest at N=25 and N=50.
-2. Sampling variability may exceed the gain from switching from logistic regression to a shallow MLP.
-3. Calibration will deteriorate faster than AUROC as N decreases.
-4. Some small cohorts will yield deceptively high AUROC purely because of patient composition.
-5. Increasing N will reduce both average error and between-subset variance.
+* Pearson correlation;
+* Spearman correlation;
+* R²;
+* MAE;
+* RMSE.
 
-Treat these as hypotheses, not expected conclusions.
+Create a table:
+
+```text
+target
+pearson_r
+spearman_r
+r2
+mae
+rmse
+n
+```
+
+Use confidence intervals where feasible.
+
+Do not overinterpret modest correlations.
+
+This analysis is secondary.
+
+The main contribution is patient-level target ranking.
 
 ---
 
-# Reproducibility requirements
+# Phase 8 — Primary within-patient ranking analysis
 
-Create a clean repository:
+For every patient, compare:
 
 ```text
-small_n_pathology/
+true_target_vector
+predicted_target_vector
+```
+
+Calculate:
+
+## Patient-level Spearman rank correlation
+
+```text
+rho_i = Spearman(true_target_order, predicted_target_order)
+```
+
+## Patient-level Kendall tau
+
+```text
+tau_i
+```
+
+## Top-1 target accuracy
+
+Does:
+
+```text
+argmax(predicted target expression)
+```
+
+equal:
+
+```text
+argmax(true target expression)?
+```
+
+## Top-2 recall
+
+Is the actual highest-expression target contained in the predicted top two?
+
+## Pairwise ranking accuracy
+
+For every target pair A/B:
+
+```text
+true: A > B
+predicted: A > B
+```
+
+Calculate the fraction of correctly ordered target pairs per patient.
+
+## Optional NDCG
+
+Use only if mathematically appropriate and explain the relevance scores clearly.
+
+Do not include metrics simply because they are common in information retrieval.
+
+---
+
+# Important ranking-scale issue
+
+Different genes may naturally have very different expression ranges.
+
+A naive within-patient ranking across raw gene values may therefore reflect gene-specific measurement scale rather than meaningful relative target biology.
+
+You MUST investigate this before claiming therapeutic ranking.
+
+Run at least two ranking definitions:
+
+## Ranking A — Raw or original transformed expression
+
+Preserves measured cross-gene magnitude.
+
+## Ranking B — Cohort-standardized expression
+
+For each target:
+
+```text
+z_ig = (expression_ig - training_target_mean) /
+       training_target_sd
+```
+
+Then rank each patient's target-specific z-scores.
+
+Interpretation:
+
+> Which targets are unusually high for this patient relative to the population distribution of that target?
+
+This may be the more scientifically defensible ranking.
+
+All standardization parameters must come from training folds only.
+
+Compare both definitions.
+
+If the ranking conclusions differ substantially, report that as a key limitation.
+
+---
+
+# Phase 9 — Therapeutic target prioritization metric
+
+Define an exploratory target-prioritization problem.
+
+For cohort-standardized expression, define the patient's dominant target as:
+
+```text
+target with highest target-specific z-score
+```
+
+Evaluate:
+
+* top-1 accuracy;
+* top-2 recall;
+* confusion matrix of true versus predicted dominant targets;
+* target-specific recall.
+
+This should be framed as:
+
+> recovery of the relative molecular target landscape
+
+NOT:
+
+> prediction of the optimal ADC
+
+or:
+
+> treatment selection.
+
+RNA expression alone is not sufficient for ADC eligibility.
+
+State this explicitly.
+
+---
+
+# Phase 10 — Simple subtype/confounding control
+
+If subtype or receptor-status labels are easily available in the prepared data or from a simple matched metadata file, test whether the ranking task is merely recovering broad breast-cancer subtype.
+
+Do not create a large TCGA metadata-engineering project if the labels are not readily accessible.
+
+If subtype labels are available:
+
+## Baseline 1
+
+Predict target expression using subtype only.
+
+## Baseline 2
+
+Predict target landscape using pathology embeddings.
+
+## Baseline 3
+
+Subtype + pathology embeddings.
+
+Compare:
+
+* gene-level prediction;
+* within-patient ranking;
+* top-1 dominant target accuracy.
+
+If pathology improves ranking beyond subtype, report it cautiously.
+
+If subtype explains almost all performance, that is also an important result.
+
+If subtype labels are not readily available by the first modelling day, defer this analysis rather than derail the pilot.
+
+---
+
+# Phase 11 — Cross-target structure
+
+Evaluate whether the model recovers the co-expression structure of the selected targets.
+
+Calculate the true target correlation matrix:
+
+```text
+corr_true
+```
+
+and the predicted target correlation matrix:
+
+```text
+corr_pred
+```
+
+Compare using:
+
+* matrix correlation;
+* Frobenius norm difference;
+* qualitative heatmap comparison.
+
+Also compare target-pair ordering performance.
+
+This asks:
+
+> Does morphology recover the joint target landscape, rather than merely individual target values?
+
+---
+
+# Phase 12 — Critical negative controls
+
+Run at least:
+
+## Shuffled RNA labels
+
+Shuffle patient RNA vectors relative to pathology embeddings.
+
+Performance should collapse.
+
+## Random embeddings
+
+Generate matched-dimensional random features or use a reduced random baseline.
+
+## Mean-only molecular baseline
+
+Predict average expression patterns without pathology input.
+
+If the model does not outperform these controls, do not claim morphology contains informative target-landscape signal.
+
+---
+
+# Phase 13 — Robustness
+
+At minimum:
+
+* repeat cross-validation seeds;
+* report variation across folds;
+* rerun after removing the weakest-variance target;
+* rerun using 4 versus 5 versus 6 targets;
+* compare raw-expression ranking versus standardized-expression ranking.
+
+If results depend entirely on one target such as ERBB2, say so explicitly.
+
+That is an important result.
+
+---
+
+# Phase 14 — Main go/no-go criteria
+
+After the simple ridge model is run, classify the project as:
+
+## GO
+
+Proceed to abstract if at least one of these is true:
+
+1. median patient-level ranking correlation is clearly above random;
+2. top-1 dominant-target accuracy meaningfully exceeds the class/prevalence baseline;
+3. top-2 recall is clearly informative;
+4. the model recovers multi-target co-expression structure;
+5. morphology adds information beyond an easily available subtype baseline;
+6. there is an interesting negative finding showing that individual gene prediction works but within-patient target ranking fails.
+
+## CONDITIONAL GO
+
+Proceed only as a limitations/evaluation paper if:
+
+* individual gene prediction is moderate;
+* ranking performance is weak;
+* but the contrast demonstrates that conventional biomarker metrics exaggerate therapeutic usefulness.
+
+This could support a title like:
+
+> **Predicting Individual Targets Is Not the Same as Recovering the Therapeutic Target Landscape**
+
+## NO-GO
+
+Stop if:
+
+* individual target prediction is near chance/noise;
+* ranking equals random;
+* results are unstable;
+* matching cannot be verified;
+* expression scales make the ranking concept uninterpretable;
+* prepared data are incomplete or inconsistent.
+
+If NO-GO, do not add complexity.
+
+Move to a simpler backup project.
+
+---
+
+# Strong possible scientific story A
+
+If ranking works:
+
+> Pathology foundation-model embeddings recovered not only individual ADC-relevant transcript levels but also patient-specific relative target landscapes, supporting the hypothesis that H&E contains multivariate therapeutic-target information beyond isolated biomarker classification.
+
+Use only if supported.
+
+---
+
+# Strong possible scientific story B
+
+If individual prediction works but ranking fails:
+
+> Although pathology embeddings predicted several ADC-relevant transcripts individually, they failed to preserve patient-level target ordering. This distinction suggests that strong single-biomarker performance does not necessarily imply utility for multi-target therapeutic prioritization.
+
+This is potentially a very good workshop result.
+
+---
+
+# Strong possible scientific story C
+
+If subtype explains everything:
+
+> Apparent morphology-based prediction of ADC-relevant targets was largely explained by broad tumour phenotype, emphasizing the need to distinguish target-specific information from correlated lineage structure.
+
+This is less novel but scientifically honest.
+
+---
+
+# Repository structure
+
+Create:
+
+```text
+adc_target_landscape/
 ├── README.md
-├── pyproject.toml
 ├── requirements.txt
 ├── .gitignore
-├── configs/
 ├── data/
 │   ├── raw/
 │   ├── processed/
 │   └── manifests/
 ├── src/
-│   └── small_n_pathology/
+│   └── adc_landscape/
 │       ├── __init__.py
 │       ├── data.py
-│       ├── splits.py
+│       ├── targets.py
+│       ├── pooling.py
 │       ├── models.py
-│       ├── metrics.py
-│       ├── calibration.py
-│       ├── experiment.py
+│       ├── ranking.py
+│       ├── evaluation.py
 │       └── plots.py
 ├── scripts/
-│   ├── download_data.py
-│   ├── prepare_data.py
-│   ├── create_splits.py
-│   ├── run_experiments.py
+│   ├── audit_data.py
+│   ├── audit_targets.py
+│   ├── build_manifest.py
+│   ├── pool_embeddings.py
+│   ├── run_cv.py
+│   ├── evaluate_rankings.py
 │   └── make_figures.py
 ├── tests/
-│   ├── test_splits.py
-│   ├── test_no_leakage.py
-│   └── test_metrics.py
+│   ├── test_matching.py
+│   ├── test_leakage.py
+│   ├── test_ranking.py
+│   └── test_preprocessing.py
 ├── results/
-│   ├── metrics/
 │   ├── predictions/
+│   ├── metrics/
+│   ├── tables/
 │   └── figures/
 └── notebooks/
     └── 01_results_review.ipynb
 ```
 
-Keep notebooks for inspection only.
+Keep the implementation small.
 
-Core experiment logic must live in Python modules.
-
----
-
-# Required automated checks
-
-Implement tests that verify:
-
-1. no patient appears in both train and test;
-2. nested subsets are truly nested;
-3. the same test set is used across all N values;
-4. class labels are valid;
-5. no duplicate patient IDs exist after aggregation;
-6. scaling is fitted on training data only;
-7. test labels are never used in model fitting;
-8. all experiment results include the subset seed and training size.
-
-Stop execution if leakage is detected.
+Do not add infrastructure unless needed.
 
 ---
 
-# Configuration
+# Required tests
 
-Use a YAML or TOML config with fields such as:
+Implement automated checks verifying:
 
-```yaml
-dataset:
-  name: ...
-  embedding_path: ...
-  label_column: ...
-  patient_id_column: ...
-  slide_id_column: ...
-
-splits:
-  test_fraction: 0.2
-  validation_fraction: 0.1
-  subset_sizes: [25, 50, 100, 200]
-  subset_seeds: [1, 2, 3, 4, 5]
-
-models:
-  logistic_regression:
-    C_values: [0.01, 0.1, 1, 10]
-
-  mlp:
-    hidden_dim: 64
-    dropout: 0.3
-    max_epochs: 100
-
-metrics:
-  - auroc
-  - auprc
-  - brier
-  - balanced_accuracy
-```
-
-Adjust values based on the actual dataset.
+1. patient IDs match between pathology and RNA;
+2. no missing selected-target expression exists after filtering;
+3. no patient appears in train and test in the same fold;
+4. all gene-wise scaling is fitted using training data only;
+5. all PCA is fitted using training data only;
+6. out-of-fold predictions exist exactly once per patient per repeat;
+7. ranking functions return correct results on synthetic examples;
+8. shuffled-label controls are actually shuffled;
+9. result tables preserve model, fold, repeat, and target metadata.
 
 ---
 
-# Hyperparameter strategy
+# Required figures
 
-Keep hyperparameter search deliberately small.
+Produce simple publication-quality figures.
 
-For logistic regression:
+## Figure 1
 
-* test only a small prespecified set of C values.
-
-For MLP:
-
-* use one or two learning rates;
-* one fixed hidden dimension;
-* one dropout range.
-
-Do not use massive Optuna searches.
-
-The purpose of the paper is sampling instability, not optimization.
-
----
-
-# Figures
-
-Generate publication-quality figures using matplotlib only.
-
-Do not use seaborn.
-
-Create separate figures, not subplots unless truly necessary.
-
-Do not manually specify colors unless needed.
-
-Required figures:
-
-## Figure 1: Study design
-
-Show:
+Study schematic:
 
 ```text
-Full training pool
-      ↓
-Repeated patient subsampling
-      ↓
-25 / 50 / 100 / 200 / full
-      ↓
-Frozen PFM embeddings
-      ↓
-Simple classifier
-      ↓
-Fixed test set
+TCGA-BRCA H&E
+    ↓
+precomputed UNI patch embeddings
+    ↓
+mean pooling
+    ↓
+multi-output regression
+    ↓
+ADC-relevant transcript profile
+    ↓
+within-patient target ranking
 ```
 
-## Figure 2: Learning curve
+## Figure 2
 
-X-axis:
+Per-target prediction performance.
 
-* number of training patients
+Use a dot plot or bar plot for:
 
-Y-axis:
+* Spearman r;
+* optionally R².
 
-* AUROC
+## Figure 3
 
-Display:
+Distribution of patient-level ranking correlations.
 
-* mean or median;
-* variability interval;
-* individual subset runs if readable.
+## Figure 4
 
-## Figure 3: Calibration or Brier score versus N
-
-Show whether calibration deteriorates as sample size decreases.
-
-## Figure 4: Sampling instability
-
-X-axis:
-
-* N
-
-Y-axis:
-
-* standard deviation or IQR of AUROC across patient subsets.
+True versus predicted dominant target confusion matrix or top-target performance.
 
 ## Optional Figure 5
 
-Compare:
+True versus predicted target co-expression matrices.
+
+Do not create decorative plots.
+
+---
+
+# Required tables
+
+## Table 1 — Target audit
 
 ```text
-Sampling variability
-vs
-Method gain
+target
+n
+mean
+sd
+median
+iqr
+pct_zero
+therapeutic_relevance
+selected
 ```
 
-to test whether changing patient composition has a larger effect than changing the downstream classifier.
+## Table 2 — Individual target prediction
+
+```text
+target
+pearson
+spearman
+r2
+mae
+rmse
+```
+
+## Table 3 — Landscape recovery
+
+```text
+metric
+value
+confidence_interval
+random_baseline
+```
+
+Include:
+
+* median patient Spearman;
+* median Kendall tau;
+* pairwise ranking accuracy;
+* top-1 accuracy;
+* top-2 recall.
 
 ---
 
-# Tables
+# Statistical principles
 
-Create:
+Use the patient as the unit of analysis.
 
-## Table 1: Dataset
-
-Columns:
-
-* patients;
-* slides;
-* endpoint;
-* positive class;
-* negative class;
-* class prevalence;
-* embedding dimension.
-
-## Table 2: Performance
-
-Rows:
-
-* N=25;
-* 50;
-* 100;
-* 200;
-* full.
-
-Columns:
-
-* mean AUROC;
-* SD AUROC;
-* mean AUPRC;
-* mean Brier;
-* best AUROC;
-* worst AUROC.
-
-## Table 3: Method comparison
-
-Compare logistic regression and MLP.
-
----
-
-# Statistical analysis
-
-Keep the statistics simple and defensible.
+Do not treat patches as independent observations.
 
 Use:
 
-* paired comparisons because the same subset/test framework is reused;
-* bootstrap confidence intervals where appropriate;
-* empirical variability across subset seeds;
-* Spearman or regression analysis of N versus instability if useful.
+* out-of-fold predictions;
+* bootstrap confidence intervals at patient level;
+* permutation tests for ranking metrics if useful;
+* repeated cross-validation for stability.
 
-Do not use tile-level sample sizes as independent observations.
+Do not report dozens of p-values.
 
-Do not report p-values from thousands of embeddings.
+The paper is exploratory and preliminary.
 
-The patient is the statistical unit.
+Effect sizes and uncertainty are more important.
 
 ---
 
 # Interpretation rules
 
-If performance decreases with smaller N:
+Never say:
 
-Do not say:
+> H&E identifies the best ADC.
 
-> Small cohorts make foundation models fail.
+Never say:
 
-Say:
+> RNA expression predicts clinical ADC eligibility.
 
-> Downstream predictive performance and stability deteriorated as fewer labelled patients were available in this cohort.
+Never say:
 
-If some N=25 subsets perform very well:
+> The model can guide treatment selection.
 
-Investigate whether this is due to:
+Prefer:
 
-* class balance;
-* disease subtype;
-* site;
-* scanner;
-* age;
-* stage;
-* other available metadata.
+> H&E-derived foundation-model representations were evaluated for their ability to recover relative expression patterns among ADC-relevant molecular targets.
 
-Do not cherry-pick the best subset.
+If using standardized target expression, explain:
 
-If logistic regression performs as well as MLP:
+> The ranking represents relative overexpression of each target compared with its cohort distribution, not absolute protein abundance.
 
-Treat that as an important result.
+State clearly that:
 
-If the MLP performs better on average but has greater variance:
-
-Highlight the performance–stability trade-off.
+* RNA is an exploratory molecular phenotype;
+* protein abundance may differ;
+* membrane localization is not measured;
+* spatial heterogeneity is not measured;
+* clinical ADC response is not measured.
 
 ---
 
 # Workshop abstract objective
 
-The eventual extended abstract should make one clear claim.
+The 4-page extended abstract should answer only:
 
-A possible conclusion structure is:
+> **Do generic pathology foundation-model embeddings preserve patient-level relative information across multiple therapeutically relevant targets?**
 
-> Across repeated small patient cohorts, model performance varied substantially as a function of cohort composition. This variability was greatest below approximately [observed N] patients and in some settings exceeded the gain obtained by increasing downstream model complexity. These preliminary findings suggest that repeated patient-level subsampling and stability reporting should accompany performance estimates when pathology foundation models are evaluated in small biomedical cohorts.
+Do not turn the workshop version into:
 
-Only use this wording if the actual results support it.
-
----
-
-# Potential title options
-
-Evaluate:
-
-* **How Small Is Too Small? Stability of Pathology Foundation Models Across Oncology Cohort Sizes**
-* **Patient Sampling Uncertainty in Small-Cohort Pathology Foundation-Model Studies**
-* **When Cohort Composition Matters More Than Model Choice: A Small-N Pathology Foundation-Model Study**
-* **Quantifying Predictive Instability of Pathology Foundation Models Under Limited Oncology Sample Sizes**
-* **Beyond AUROC: Sampling Stability of Foundation-Model Biomarkers in Small Oncology Cohorts**
-
-Do not finalize the title before seeing the results.
+* a clinical biomarker paper;
+* an ADC selection model;
+* a multimodal foundation-model paper;
+* a treatment-response study.
 
 ---
 
-# Deliverables
+# Possible titles
 
-By the end, produce:
+Do not finalize until results are known.
 
-1. working GitHub-ready repository;
-2. reproducible dataset preparation;
-3. patient-level nested subsets;
-4. experiment result CSV;
-5. prediction-level CSV;
-6. figures;
-7. tables;
-8. concise methods description;
-9. concise results summary;
-10. 4-page NeurIPS-style extended abstract draft outline;
-11. poster outline;
-12. limitations;
-13. next-step plan for the full transfer-learning paper.
+Potential titles:
+
+* **From Single Biomarkers to Target Landscapes: Can Histology Recover Relative ADC-Relevant Expression?**
+* **Can Pathology Foundation Models Recover Patient-Level ADC Target Landscapes from H&E?**
+* **Beyond Single-Target Prediction: Evaluating Multi-Target Therapeutic Landscapes in Pathology Foundation Models**
+* **Predicting Individual Biomarkers Is Not the Same as Recovering Therapeutic Target Rankings**
+* **A Preliminary Evaluation of ADC-Relevant Target Landscape Recovery from Histology Foundation-Model Embeddings**
 
 ---
 
-# Important scope control
+# Immediate execution order
 
-If you encounter a major hurdle, do not expand the project.
+Do exactly this:
 
-Prefer, in order:
+## Step 1
 
-1. use a simpler endpoint;
-2. use one foundation model;
-3. remove the MLP;
-4. reduce subset seeds from 10 to 5;
-5. use fewer N values;
-6. use a smaller dataset.
+Inspect and verify the prepared TANGLE TCGA-BRCA files.
 
-Do not respond to a hurdle by adding:
+## Step 2
 
-* RNA-seq;
-* multiple foundation models;
-* LoRA;
-* full fine-tuning;
-* MIL;
-* Docker complexity;
-* complex hyperparameter optimization.
+Generate the ADC target audit table.
 
-The priority is a **clean, defensible preliminary result quickly**.
+## Step 3
+
+Confirm patient matching and embedding dimensionality.
+
+## Step 4
+
+Mean-pool embeddings.
+
+## Step 5
+
+Run ridge regression with repeated cross-validation.
+
+## Step 6
+
+Generate out-of-fold target predictions.
+
+## Step 7
+
+Calculate individual-target metrics.
+
+## Step 8
+
+Calculate within-patient ranking metrics.
+
+## Step 9
+
+Run shuffled-label control.
+
+## Step 10
+
+Print a concise GO / CONDITIONAL GO / NO-GO recommendation.
+
+Do not do anything more complicated before completing Step 10.
 
 ---
 
 # First response required
 
-Start with the feasibility audit only.
+Start with the actual feasibility audit.
 
 Do not write modelling code yet.
 
-Your first response must provide:
+Return:
 
-1. the easiest currently accessible precomputed pathology embedding dataset;
-2. the associated oncology endpoint;
-3. number of patients;
-4. number of slides;
-5. embedding dimensions;
-6. class distribution if available;
-7. download size;
-8. exact access method;
-9. license;
-10. whether patient IDs and labels are directly available;
-11. whether any authentication is required;
-12. whether a fixed external test set is available;
-13. the next-best dataset if the first one fails;
-14. the exact minimum experiment that can realistically be completed first;
-15. the first three implementation steps.
+1. exact TANGLE data files available;
+2. download method;
+3. authentication requirement;
+4. approximate download size;
+5. pathology file structure;
+6. RNA file structure;
+7. patient identifiers;
+8. number of matched patients;
+9. embedding dimension;
+10. gene naming format;
+11. which of the candidate ADC targets exist;
+12. distribution statistics for each available target if the data can already be loaded;
+13. recommended 4–6 targets;
+14. any immediate scientific problem with cross-target ranking;
+15. whether raw or cohort-standardized target ranking is more defensible;
+16. the exact minimal experiment to run next;
+17. GO / CONDITIONAL GO / NO-GO feasibility status.
 
-Use official repositories, primary model publications, and official dataset documentation.
-
-Clearly distinguish verified facts from provisional estimates.
+Do not proceed to modelling until this audit is complete.
