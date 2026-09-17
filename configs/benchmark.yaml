@@ -1,0 +1,33 @@
+project: adc_target_landscape
+cohort: TCGA-BRCA
+targets:
+  - ERBB2
+  - TACSTD2
+  - PVRL4
+  - FOLR1
+  - SLC39A6
+  - MET
+aliases:
+  TROP2: TACSTD2
+  NECTIN4: PVRL4
+  LIV1: SLC39A6
+encoder: UNI
+primary_pooling: mean
+pooling_ablations: [mean, max, mean_max]
+pca_options: [true, false]
+regressor: ridge
+ridge_alphas: [0.1, 1.0, 10.0, 100.0]
+cv:
+  scheme: repeated_patient_level_kfold
+  folds: 5
+  seeds: [42, 2026, 31415]
+  preprocessing_fit_scope: training_fold_only
+controls:
+  - shuffled_labels
+  - target_wise_mean
+  - mean_only
+metrics:
+  primary: [within_patient_spearman, pairwise_accuracy]
+  secondary: [kendall_tau, top1_accuracy, top2_recall]
+uncertainty:
+  bootstrap_replicates: 5000
